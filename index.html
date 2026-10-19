@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Porsche Sales Intelligence | Executive Dashboard</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #0d0d0f;
+      color: #f3f4f6;
+      font-family: 'Inter', sans-serif;
+    }
+    h1, h2, h3, .font-display {
+      font-family: 'Montserrat', sans-serif;
+    }
+    .porsche-card {
+      background-color: #16181d;
+      border: 1px solid #262930;
+      border-radius: 0.75rem;
+      transition: all 0.2s ease-in-out;
+    }
+    .porsche-card:hover {
+      border-color: #3f4451;
+    }
+    .porsche-accent {
+      color: #d5001c;
+    }
+    .porsche-bg-accent {
+      background-color: #d5001c;
+    }
+    .porsche-bg-accent:hover {
+      background-color: #b30017;
+    }
+    select {
+      background-color: #0d0d0f;
+      border: 1px solid #2e323b;
+      color: #f3f4f6;
+    }
+    select:focus {
+      outline: none;
+      border-color: #d5001c;
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0d0d0f;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #262930;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d5001c;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-12">
+
+  <!-- Top Header -->
+  <header class="border-b border-[#262930] bg-[#121317] sticky top-0 z-30 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-2 h-10 bg-[#d5001c] rounded-full"></div>
+        <div>
+          <span class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Porsche North America • Data Analytics</span>
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">PORSCHE <span class="font-light text-gray-300">SALES INTELLIGENCE</span></h1>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 text-xs text-gray-400 bg-[#1a1d24] px-3 py-2 rounded-lg border border-[#2a2e39]">
+        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+        <span id="activeRecordsBadge">Exibindo 100 de 100 vendas</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
+
+    <!-- Barra de Filtros -->
+    <section class="porsche-card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-gray-300 flex items-center gap-2">
+          <svg class="w-4 h-4 text-[#d5001c]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+          Filtros de Segmentação e Tratamento
+        </h2>
+        <button id="resetBtn" class="text-xs font-semibold px-3 py-1.5 rounded porsche-bg-accent text-white transition cursor-pointer">
+          Limpar Filtros
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Modelo Porsche</label>
+          <select id="filterModel" class="w-full rounded-md px-3 py-2 text-xs">
+            <option value="ALL">Todos os Modelos</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Estado (EUA)</label>
+          <select id="filterState" class="w-full rounded-md px-3 py-2 text-xs">
+            <option value="ALL">Todos os Estados</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Ano do Modelo</label>
+          <select id="filterYear" class="w-full rounded-md px-3 py-2 text-xs">
+            <option value="ALL">Todos os Anos</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Método de Pagamento</label>
+          <select id="filterPayment" class="w-full rounded-md px-3 py-2 text-xs">
+            <option value="ALL">Todos os Métodos</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Status de Entrega</label>
+          <select id="filterStatus" class="w-full rounded-md px-3 py-2 text-xs">
+            <option value="ALL">Todos os Status</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-amber-400 mb-1 font-medium">Regra Data (INVALID)</label>
+          <select id="filterInvalidDate" class="w-full rounded-md px-3 py-2 text-xs border-amber-500/40">
+            <option value="ALL">Incluir Todos (100)</option>
+            <option value="VALID_ONLY">Apenas Datas Válidas (76)</option>
+            <option value="INVALID_ONLY">Apenas Datas INVALID (24)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPIs de Topo -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="porsche-card p-5 border-l-4 border-l-[#d5001c]">
+        <p class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Receita Total</p>
+        <p id="kpiRevenue" class="text-2xl sm:text-3xl font-extrabold text-white mt-2 font-display">$0</p>
+        <p id="kpiRevenueSub" class="text-xs text-gray-400 mt-1">Soma das vendas filtradas</p>
+      </div>
+
+      <div class="porsche-card p-5">
+        <p class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Unidades Vendidas</p>
+        <p id="kpiCount" class="text-2xl sm:text-3xl font-extrabold text-white mt-2 font-display">0</p>
+        <p id="kpiDeliveredSub" class="text-xs text-emerald-400 mt-1">0 entregues (Delivered)</p>
+      </div>
+
+      <div class="porsche-card p-5">
+        <p class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Ticket Médio</p>
+        <p id="kpiAvgPrice" class="text-2xl sm:text-3xl font-extrabold text-white mt-2 font-display">$0</p>
+        <p id="kpiMinMaxSub" class="text-xs text-gray-400 mt-1">Min: $0 | Max: $0</p>
+      </div>
+
+      <div class="porsche-card p-5">
+        <p class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Líder em Receita</p>
+        <p id="kpiTopModel" class="text-xl sm:text-2xl font-extrabold text-[#d5001c] mt-2 font-display truncate">-</p>
+        <p id="kpiTopModelSub" class="text-xs text-gray-400 mt-1">Maior gerador de caixa</p>
+      </div>
+    </section>
+
+    <!-- Gráficos Respondendo às 3 Perguntas de Negócio -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Pergunta de Negócio 1 -->
+      <div class="porsche-card p-5 flex flex-col">
+        <div class="mb-3">
+          <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-[#d5001c]/20 text-[#ff4d63]">Pergunta de Negócio 1</span>
+          <h3 class="text-base font-bold text-white mt-1">Quais modelos geram o maior volume financeiro (Top 10 Receita)?</h3>
+          <p class="text-xs text-gray-400">Compara a geração de receita entre superesportivos (linha 911) e SUVs/Elétricos (Cayenne, Macan, Taycan).</p>
+        </div>
+        <div class="relative flex-1 min-h-[300px]">
+          <canvas id="chartModels"></canvas>
+        </div>
+      </div>
+
+      <!-- Pergunta de Negócio 2 -->
+      <div class="porsche-card p-5 flex flex-col">
+        <div class="mb-3">
+          <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-[#d5001c]/20 text-[#ff4d63]">Pergunta de Negócio 2</span>
+          <h3 class="text-base font-bold text-white mt-1">Onde estão concentrados os maiores mercados consumidores (Top 10 Estados)?</h3>
+          <p class="text-xs text-gray-400">Identifica os estados líderes em faturamento para direcionamento de estoque e ações de marketing.</p>
+        </div>
+        <div class="relative flex-1 min-h-[300px]">
+          <canvas id="chartStates"></canvas>
+        </div>
+      </div>
+
+      <!-- Pergunta de Negócio 3 -->
+      <div class="porsche-card p-5 flex flex-col">
+        <div class="mb-3">
+          <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-[#d5001c]/20 text-[#ff4d63]">Pergunta de Negócio 3</span>
+          <h3 class="text-base font-bold text-white mt-1">Como o cliente Porsche prefere pagar suas aquisições?</h3>
+          <p class="text-xs text-gray-400">Distribuição da receita total por modalidade de pagamento (Liquidez à vista vs. Crédito/Lease).</p>
+        </div>
+        <div class="relative flex-1 min-h-[300px]">
+          <canvas id="chartPayment"></canvas>
+        </div>
+      </div>
+
+      <!-- Análise Complementar de Safra -->
+      <div class="porsche-card p-5 flex flex-col">
+        <div class="mb-3">
+          <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-gray-700 text-gray-300">Indicador Complementar de Safra</span>
+          <h3 class="text-base font-bold text-white mt-1">Como a Receita e o Volume se distribuem por Ano do Modelo (2020–2026)?</h3>
+          <p class="text-xs text-gray-400">Evolução do faturamento conforme a safra de fabricação dos veículos comercializados.</p>
+        </div>
+        <div class="relative flex-1 min-h-[300px]">
+          <canvas id="chartYears"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Tabela de Dados Detalhada -->
+    <section class="porsche-card p-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+        <div>
+          <h3 class="text-base font-bold text-white">Base de Vendas Sanitizada (Detalhamento)</h3>
+          <p class="text-xs text-gray-400">Listagem dinâmica reativa aos filtros selecionados acima.</p>
+        </div>
+      </div>
+      <div class="overflow-x-auto max-h-96">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-[#262930] text-gray-400 uppercase bg-[#121317] sticky top-0">
+              <th class="py-3 px-3">Data Venda</th>
+              <th class="py-3 px-3">Modelo</th>
+              <th class="py-3 px-3">Ano</th>
+              <th class="py-3 px-3">Preço (US$)</th>
+              <th class="py-3 px-3">Quilometragem</th>
+              <th class="py-3 px-3">Pagamento</th>
+              <th class="py-3 px-3">Cidade / UF</th>
+              <th class="py-3 px-3">Status Entrega</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-[#262930]"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 text-center text-xs text-gray-500">
+    <p>Dashboard Desenvolvida para o Desafio DIO • Base de Dados Porsche Sanitizada (100 registros)</p>
+  </footer>
+
+  <!-- Dados Embutidos e Lógica da Dashboard -->
+  <script>
+    // 100 registros extraídos diretamente da planilha 'usar esta aqui1.xlsx' (aba dados_projeto)
+    const rawSalesData = [
+      {"d": "INVALID", "m": "718 Cayman", "y": 2022, "p": 79500.0, "km": 9800, "pm": "Credit Card", "c": "Boston", "s": "MA", "st": "Delivered"},
+      {"d": "2024-03-14", "m": "911 Turbo S", "y": 2024, "p": 235000.0, "km": 1200, "pm": "Wire Transfer", "c": "Seattle", "s": "WA", "st": "Delivered"},
+      {"d": "2024-04-18", "m": "Cayenne Coupe", "y": 2023, "p": 112750.0, "km": 6400, "pm": "Financing", "c": "Austin", "s": "TX", "st": "In Transit"},
+      {"d": "INVALID", "m": "Macan S", "y": 2021, "p": 68900.0, "km": 28, "pm": "Cash", "c": "Denver", "s": "CO", "st": "Pending"},
+      {"d": "2024-05-22", "m": "Taycan 4S", "y": 2024, "p": 121000.0, "km": 0, "pm": "Bank Transfer", "c": "Los Angeles", "s": "CA", "st": "Delivered"},
+      {"d": "2024-08-06", "m": "Panamera 4", "y": 2023, "p": 104500.0, "km": 14500, "pm": "Credit Card", "c": "Miami", "s": "FL", "st": "Cancelled"},
+      {"d": "2024-07-11", "m": "911 Carrera S", "y": 2020, "p": 96300.0, "km": 41000, "pm": "Lease", "c": "New York", "s": "NY", "st": "Delivered"},
+      {"d": "INVALID", "m": "Cayenne E-Hybrid", "y": 2022, "p": 89750.0, "km": 11744, "pm": "Wire Transfer", "c": "San Diego", "s": "CA", "st": "Pending Approval"},
+      {"d": "2024-08-19", "m": "718 Boxster", "y": 2021, "p": 73500.0, "km": 22300, "pm": "Debit Card", "c": "Chicago", "s": "IL", "st": "Shipped"},
+      {"d": "2024-09-02", "m": "Macan GTS", "y": 2024, "p": 95000.0, "km": 3500, "pm": "Financing", "c": "Phoenix", "s": "AZ", "st": "In Transit"},
+      {"d": "2024-09-17", "m": "Taycan Turbo", "y": 2023, "p": 153200.5, "km": 11, "pm": "ACH Payment", "c": "Dallas", "s": "TX", "st": "Delivered"},
+      {"d": "INVALID", "m": "911 GT3", "y": 2024, "p": 241000.0, "km": 750, "pm": "Wire Transfer", "c": "Las Vegas", "s": "NV", "st": "Pending"},
+      {"d": "2024-05-11", "m": "Panamera Turbo S", "y": 2022, "p": 132000.0, "km": 19250, "pm": "Cash", "c": "San Jose", "s": "CA", "st": "Delivered"},
+      {"d": "2024-12-12", "m": "Cayenne Turbo GT", "y": 2024, "p": 188000.0, "km": 2100, "pm": "Crypto Payment", "c": "Houston", "s": "TX", "st": "Awaiting Delivery"},
+      {"d": "2024-12-25", "m": "911 Carrera Cabriolet", "y": 2023, "p": 127800.0, "km": 12000, "pm": "Credit Card", "c": "Atlanta", "s": "GA", "st": "Delivered"},
+      {"d": "2025-01-06", "m": "Macan", "y": 2021, "p": 58900.0, "km": 33700, "pm": "Bank Transfer", "c": "Orlando", "s": "FL", "st": "Pending"},
+      {"d": "INVALID", "m": "718 Spyder RS", "y": 2024, "p": 164000.0, "km": 900, "pm": "Financing", "c": "Portland", "s": "OR", "st": "In Transit"},
+      {"d": "2025-02-14", "m": "Taycan Cross Turismo", "y": 2023, "p": 118500.0, "km": 7800, "pm": "Wire Transfer", "c": "Charlotte", "s": "NC", "st": "Delivered"},
+      {"d": "INVALID", "m": "Cayenne S", "y": 2022, "p": 91300.0, "km": 16000, "pm": "Credit Card", "c": "Nashville", "s": "TN", "st": "Pending"},
+      {"d": "2025-03-21", "m": "911 Targa 4S", "y": 2024, "p": 158750.0, "km": 2500, "pm": "Lease", "c": "Minneapolis", "s": "MN", "st": "Delivered"},
+      {"d": "2025-03-28", "m": "Panamera", "y": 2020, "p": 72000.0, "km": 49000, "pm": "Bank Transfer", "c": "Philadelphia", "s": "PA", "st": "Cancelled"},
+      {"d": "2025-04-09", "m": "Macan Electric", "y": 2025, "p": 86500.0, "km": 0, "pm": "Wire Transfer", "c": "San Antonio", "s": "TX", "st": "Delivered"},
+      {"d": "INVALID", "m": "911 Dakar", "y": 2024, "p": 270000.0, "km": 1050, "pm": "Cash", "c": "Salt Lake City", "s": "UT", "st": "Awaiting Pickup"},
+      {"d": "2025-05-12", "m": "Taycan GTS", "y": 2023, "p": 139000.0, "km": 6250, "pm": "Financing", "c": "Raleigh", "s": "NC", "st": "In Transit"},
+      {"d": "2025-06-18", "m": "Cayenne", "y": 2021, "p": 76800.0, "km": 38400, "pm": "Credit Card", "c": "Detroit", "s": "MI", "st": "Delivered"},
+      {"d": "INVALID", "m": "718 Cayman GT4 RS", "y": 2024, "p": 173600.0, "km": 400, "pm": "Wire Transfer", "c": "Columbus", "s": "OH", "st": "Pending"},
+      {"d": "2025-07-07", "m": "911 Carrera GTS", "y": 2022, "p": 119900.0, "km": 13600, "pm": "Cash", "c": "Indianapolis", "s": "IN", "st": "Delivered"},
+      {"d": "2025-07-22", "m": "Panamera 4 E-Hybrid", "y": 2023, "p": 109250.0, "km": 8900, "pm": "Lease", "c": "Fort Worth", "s": "TX", "st": "In Transit"},
+      {"d": "2025-08-14", "m": "Macan T", "y": 2022, "p": 82000.0, "km": 21750, "pm": "Wire Transfer", "c": "Jacksonville", "s": "FL", "st": "Delivered"},
+      {"d": "2025-09-01", "m": "Taycan Turbo S", "y": 2025, "p": 214000.0, "km": 0, "pm": "Crypto Payment", "c": "San Diego", "s": "CA", "st": "Pending Review"},
+      {"d": "INVALID", "m": "911 Carrera", "y": 2024, "p": 124500.0, "km": 4800, "pm": "Credit Card", "c": "Tampa", "s": "FL", "st": "Delivered"},
+      {"d": "2025-09-18", "m": "Cayenne S", "y": 2023, "p": 98200.0, "km": 12200, "pm": "Bank Transfer", "c": "Sacramento", "s": "CA", "st": "Pending"},
+      {"d": "2025-10-04", "m": "Macan", "y": 2022, "p": 67500.0, "km": 24100, "pm": "Financing", "c": "Cleveland", "s": "OH", "st": "Delivered"},
+      {"d": "2025-10-12", "m": "Taycan", "y": 2025, "p": 116900.0, "km": 0, "pm": "Wire Transfer", "c": "Milwaukee", "s": "WI", "st": "In Transit"},
+      {"d": "2025-10-29", "m": "Panamera 4S", "y": 2024, "p": 112000.0, "km": 10, "pm": "Cash", "c": "Kansas City", "s": "MO", "st": "Delivered"},
+      {"d": "2025-02-11", "m": "718 Boxster", "y": 2021, "p": 74000.0, "km": 31000, "pm": "Debit Card", "c": "Omaha", "s": "NE", "st": "Cancelled"},
+      {"d": "2025-11-16", "m": "911 Turbo", "y": 2024, "p": 198300.0, "km": 2400, "pm": "Wire Transfer", "c": "Albuquerque", "s": "NM", "st": "Awaiting Delivery"},
+      {"d": "INVALID", "m": "Cayenne Coupe", "y": 2023, "p": 103750.0, "km": 6773, "pm": "Wire Transfer", "c": "Tucson", "s": "AZ", "st": "Pending Approval"},
+      {"d": "INVALID", "m": "Macan GTS", "y": 2024, "p": 93600.0, "km": 5800, "pm": "Financing", "c": "Fresno", "s": "CA", "st": "Shipped"},
+      {"d": "2025-12-07", "m": "Taycan 4S", "y": 2025, "p": 129000.0, "km": 0, "pm": "ACH Payment", "c": "Virginia Beach", "s": "VA", "st": "In Transit"},
+      {"d": "2025-12-22", "m": "Panamera Turbo", "y": 2022, "p": 136000.0, "km": 18400, "pm": "Credit Card", "c": "Colorado Springs", "s": "CO", "st": "Delivered"},
+      {"d": "INVALID", "m": "911 GT3 RS", "y": 2024, "p": 286500.0, "km": 700, "pm": "Wire Transfer", "c": "Arlington", "s": "TX", "st": "Pending"},
+      {"d": "2026-01-08", "m": "Cayenne E-Hybrid", "y": 2023, "p": 92800.0, "km": 15000, "pm": "Lease", "c": "Bakersfield", "s": "CA", "st": "Delivered"},
+      {"d": "2026-01-15", "m": "Macan T", "y": 2022, "p": 72400.0, "km": 19750, "pm": "Cash", "c": "Mesa", "s": "AZ", "st": "Awaiting Pickup"},
+      {"d": "2026-01-28", "m": "Taycan Turbo", "y": 2025, "p": 158500.0, "km": 3200, "pm": "Crypto Payment", "c": "Atlanta", "s": "GA", "st": "Delivered"},
+      {"d": "2026-02-03", "m": "718 Cayman", "y": 2021, "p": 69900.0, "km": 27600, "pm": "Bank Transfer", "c": "Long Beach", "s": "CA", "st": "Pending"},
+      {"d": "INVALID", "m": "911 Targa 4", "y": 2024, "p": 141250.0, "km": 2100, "pm": "Financing", "c": "Oakland", "s": "CA", "st": "In Transit"},
+      {"d": "2026-02-19", "m": "Panamera", "y": 2020, "p": 71500.0, "km": 52000, "pm": "Wire Transfer", "c": "Tulsa", "s": "OK", "st": "Delivered"},
+      {"d": "2026-02-25", "m": "Cayenne Turbo", "y": 2023, "p": 146800.0, "km": 11300, "pm": "Credit Card", "c": "Wichita", "s": "KS", "st": "Pending"},
+      {"d": "2026-03-01", "m": "Macan Electric", "y": 2025, "p": 89700.0, "km": 0, "pm": "Lease", "c": "New Orleans", "s": "LA", "st": "Delivered"},
+      {"d": "2026-03-14", "m": "911 Carrera S", "y": 2022, "p": 104600.0, "km": 15900, "pm": "Bank Transfer", "c": "Honolulu", "s": "HI", "st": "Cancelled"},
+      {"d": "INVALID", "m": "Taycan GTS", "y": 2024, "p": 142000.0, "km": 6600, "pm": "Wire Transfer", "c": "Anaheim", "s": "CA", "st": "Delivered"},
+      {"d": "2026-04-08", "m": "Cayenne", "y": 2021, "p": 78400.0, "km": 40250, "pm": "Cash", "c": "Henderson", "s": "NV", "st": "Awaiting Review"},
+      {"d": "INVALID", "m": "718 Spyder RS", "y": 2025, "p": 169000.0, "km": 850, "pm": "Financing", "c": "Lexington", "s": "KY", "st": "In Transit"},
+      {"d": "2026-04-21", "m": "911 Dakar", "y": 2024, "p": 268900.0, "km": 1400, "pm": "Credit Card", "c": "Riverside", "s": "CA", "st": "Delivered"},
+      {"d": "2026-04-29", "m": "Panamera 4", "y": 2023, "p": 101300.0, "km": 12700, "pm": "Wire Transfer", "c": "Corpus Christi", "s": "TX", "st": "Pending"},
+      {"d": "2026-05-05", "m": "Macan S", "y": 2021, "p": 66750.0, "km": 29800, "pm": "Cash", "c": "St. Louis", "s": "MO", "st": "Delivered"},
+      {"d": "2026-05-14", "m": "Taycan Cross Turismo", "y": 2024, "p": 127900.0, "km": 7500, "pm": "Lease", "c": "Pittsburgh", "s": "PA", "st": "In Transit"},
+      {"d": "2026-05-23", "m": "Cayenne Turbo GT", "y": 2025, "p": 200000.0, "km": 1950, "pm": "Wire Transfer", "c": "Cincinnati", "s": "OH", "st": "Delivered"},
+      {"d": "2026-06-02", "m": "911 Carrera Cabriolet", "y": 2023, "p": 132000.0, "km": 8800, "pm": "Crypto Payment", "c": "Anchorage", "s": "AK", "st": "Pending Review"},
+      {"d": "2026-06-15", "m": "718 Cayman GT4 RS", "y": 2024, "p": 176400.0, "km": 600, "pm": "Credit Card", "c": "Plano", "s": "TX", "st": "Delivered"},
+      {"d": "INVALID", "m": "Panamera 4 E-Hybrid", "y": 2022, "p": 108500.0, "km": 16200, "pm": "Bank Transfer", "c": "Newark", "s": "NJ", "st": "Cancelled"},
+      {"d": "2026-07-07", "m": "Macan", "y": 2021, "p": 59000.0, "km": 36000, "pm": "Financing", "c": "Greensboro", "s": "NC", "st": "Awaiting Delivery"},
+      {"d": "2026-07-20", "m": "Taycan Turbo S", "y": 2025, "p": 218000.0, "km": 0, "pm": "Wire Transfer", "c": "Lincoln", "s": "NE", "st": "Pending"},
+      {"d": "INVALID", "m": "Cayenne S", "y": 2024, "p": 99950.0, "km": 5300, "pm": "Debit Card", "c": "Jersey City", "s": "NJ", "st": "Delivered"},
+      {"d": "2026-04-08", "m": "911 Carrera GTS", "y": 2024, "p": 121750.0, "km": 5872, "pm": "Credit Card", "c": "Chandler", "s": "AZ", "st": "Delivered"},
+      {"d": "2026-08-18", "m": "718 Boxster GTS", "y": 2023, "p": 91500.0, "km": 13300, "pm": "Lease", "c": "Reno", "s": "NV", "st": "Shipped"},
+      {"d": "2026-08-31", "m": "Panamera Turbo S", "y": 2022, "p": 134000.0, "km": 20100, "pm": "Wire Transfer", "c": "Buffalo", "s": "NY", "st": "In Transit"},
+      {"d": "2026-09-09", "m": "Macan GTS", "y": 2024, "p": 96800.0, "km": 0, "pm": "ACH Payment", "c": "Durham", "s": "NC", "st": "Delivered"},
+      {"d": "2026-09-17", "m": "Taycan 4S", "y": 2025, "p": 131600.0, "km": 2900, "pm": "Wire Transfer", "c": "Laredo", "s": "TX", "st": "Pending Approval"},
+      {"d": "2026-09-28", "m": "Cayenne E-Hybrid", "y": 2023, "p": 94300.0, "km": 13100, "pm": "Cash", "c": "Madison", "s": "WI", "st": "Delivered"},
+      {"d": "2026-10-06", "m": "911 Turbo S", "y": 2025, "p": 242000.0, "km": 1100, "pm": "Crypto Payment", "c": "Lubbock", "s": "TX", "st": "Awaiting Pickup"},
+      {"d": "2026-10-16", "m": "718 Cayman S", "y": 2022, "p": 82750.0, "km": 22500, "pm": "Credit Card", "c": "Toledo", "s": "OH", "st": "Cancelled"},
+      {"d": "2026-10-29", "m": "Macan Electric", "y": 2026, "p": 91300.0, "km": 0, "pm": "Wire Transfer", "c": "Irvine", "s": "CA", "st": "Delivered"},
+      {"d": "2026-11-03", "m": "Panamera", "y": 2021, "p": 79900.0, "km": 44800, "pm": "Financing", "c": "Garland", "s": "TX", "st": "Pending"},
+      {"d": "INVALID", "m": "Cayenne Coupe", "y": 2024, "p": 111000.0, "km": 6700, "pm": "Bank Transfer", "c": "Irving", "s": "TX", "st": "In Transit"},
+      {"d": "2026-12-11", "m": "911 Targa 4S", "y": 2023, "p": 156500.0, "km": 4200, "pm": "Cash", "c": "Chesapeake", "s": "VA", "st": "Delivered"},
+      {"d": "2026-12-24", "m": "Taycan", "y": 2025, "p": 119900.0, "km": 1250, "pm": "Lease", "c": "Scottsdale", "s": "AZ", "st": "Pending"},
+      {"d": "INVALID", "m": "Macan T", "y": 2022, "p": 73200.0, "km": 18600, "pm": "Wire Transfer", "c": "Norfolk", "s": "VA", "st": "Delivered"},
+      {"d": "2026-12-28", "m": "911 GT3", "y": 2024, "p": 224000.0, "km": 3000, "pm": "Wire Transfer", "c": "Boise", "s": "ID", "st": "Awaiting Delivery"},
+      {"d": "2027-01-15", "m": "911 Carrera", "y": 2024, "p": 126900.0, "km": 7200, "pm": "Credit Card", "c": "Orlando", "s": "FL", "st": "Delivered"},
+      {"d": "2027-01-29", "m": "Cayenne", "y": 2023, "p": 84500.0, "km": 21400, "pm": "Bank Transfer", "c": "San Jose", "s": "CA", "st": "Pending"},
+      {"d": "2027-02-11", "m": "Macan S", "y": 2022, "p": 69800.0, "km": 26300, "pm": "Financing", "c": "Tampa", "s": "FL", "st": "Delivered"},
+      {"d": "INVALID", "m": "Taycan 4S", "y": 2025, "p": 132700.0, "km": 0, "pm": "Wire Transfer", "c": "Denver", "s": "CO", "st": "In Transit"},
+      {"d": "2027-03-05", "m": "Panamera", "y": 2021, "p": 81000.0, "km": 42, "pm": "Cash", "c": "Austin", "s": "TX", "st": "Delivered"},
+      {"d": "2027-03-18", "m": "718 Cayman", "y": 2023, "p": 78900.0, "km": 17500, "pm": "Debit Card", "c": "Seattle", "s": "WA", "st": "Cancelled"},
+      {"d": "2027-04-02", "m": "911 Turbo S", "y": 2026, "p": 249300.0, "km": 900, "pm": "Wire Transfer", "c": "Boston", "s": "MA", "st": "Awaiting Delivery"},
+      {"d": "INVALID", "m": "Cayenne Coupe", "y": 2024, "p": 108750.0, "km": 5530, "pm": "Wire Transfer", "c": "Phoenix", "s": "AZ", "st": "Pending Approval"},
+      {"d": "INVALID", "m": "Macan Electric", "y": 2026, "p": 92600.0, "km": 0, "pm": "Financing", "c": "Chicago", "s": "IL", "st": "Shipped"},
+      {"d": "2027-05-12", "m": "Taycan Turbo", "y": 2025, "p": 164000.0, "km": 0, "pm": "ACH Payment", "c": "Dallas", "s": "TX", "st": "In Transit"},
+      {"d": "2027-05-27", "m": "Panamera 4S", "y": 2024, "p": 119000.0, "km": 13400, "pm": "Credit Card", "c": "San Francisco", "s": "CA", "st": "Delivered"},
+      {"d": "INVALID", "m": "911 GT3", "y": 2026, "p": 232500.0, "km": 1700, "pm": "Wire Transfer", "c": "Las Vegas", "s": "NV", "st": "Pending"},
+      {"d": "2027-06-18", "m": "Cayenne E-Hybrid", "y": 2023, "p": 96800.0, "km": 14000, "pm": "Lease", "c": "Charlotte", "s": "NC", "st": "Delivered"},
+      {"d": "2027-07-03", "m": "Macan T", "y": 2022, "p": 74400.0, "km": 20750, "pm": "Cash", "c": "Mesa", "s": "AZ", "st": "Awaiting Pickup"},
+      {"d": "2027-07-22", "m": "Taycan GTS", "y": 2025, "p": 148500.0, "km": 5200, "pm": "Crypto Payment", "c": "Atlanta", "s": "GA", "st": "Delivered"},
+      {"d": "2027-08-08", "m": "718 Boxster", "y": 2021, "p": 71900.0, "km": 29600, "pm": "Bank Transfer", "c": "Long Beach", "s": "CA", "st": "Pending"},
+      {"d": "INVALID", "m": "911 Targa 4", "y": 2024, "p": 143250.0, "km": 3100, "pm": "Financing", "c": "Oakland", "s": "CA", "st": "In Transit"},
+      {"d": "2027-09-19", "m": "Panamera Turbo", "y": 2020, "p": 137500.0, "km": 48000, "pm": "Wire Transfer", "c": "Tulsa", "s": "OK", "st": "Delivered"},
+      {"d": "2027-09-25", "m": "Cayenne Turbo GT", "y": 2025, "p": 204800.0, "km": 3300, "pm": "Credit Card", "c": "Wichita", "s": "KS", "st": "Pending"},
+      {"d": "2027-10-01", "m": "911 Dakar", "y": 2024, "p": 271700.0, "km": 1050, "pm": "Lease", "c": "New Orleans", "s": "LA", "st": "Delivered"}
+    ];
+
+    const formatUSD = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+
+    let chartModelsInstance = null;
+    let chartStatesInstance = null;
+    let chartPaymentInstance = null;
+    let chartYearsInstance = null;
+
+    function populateFilters() {
+      const models = [...new Set(rawSalesData.map(i => i.m))].sort();
+      const states = [...new Set(rawSalesData.map(i => i.s))].sort();
+      const years = [...new Set(rawSalesData.map(i => i.y))].sort((a, b) => a - b);
+      const payments = [...new Set(rawSalesData.map(i => i.pm))].sort();
+      const statuses = [...new Set(rawSalesData.map(i => i.st))].sort();
+
+      const addOpts = (id, arr) => {
+        const sel = document.getElementById(id);
+        arr.forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v;
+          opt.textContent = v;
+          sel.appendChild(opt);
+        });
+      };
+
+      addOpts('filterModel', models);
+      addOpts('filterState', states);
+      addOpts('filterYear', years);
+      addOpts('filterPayment', payments);
+      addOpts('filterStatus', statuses);
+    }
+
+    function getFilteredData() {
+      const fModel = document.getElementById('filterModel').value;
+      const fState = document.getElementById('filterState').value;
+      const fYear = document.getElementById('filterYear').value;
+      const fPayment = document.getElementById('filterPayment').value;
+      const fStatus = document.getElementById('filterStatus').value;
+      const fInvalid = document.getElementById('filterInvalidDate').value;
+
+      return rawSalesData.filter(item => {
+        if (fModel !== 'ALL' && item.m !== fModel) return false;
+        if (fState !== 'ALL' && item.s !== fState) return false;
+        if (fYear !== 'ALL' && String(item.y) !== fYear) return false;
+        if (fPayment !== 'ALL' && item.pm !== fPayment) return false;
+        if (fStatus !== 'ALL' && item.st !== fStatus) return false;
+        if (fInvalid === 'VALID_ONLY' && item.d === 'INVALID') return false;
+        if (fInvalid === 'INVALID_ONLY' && item.d !== 'INVALID') return false;
+        return true;
+      });
+    }
+
+    function updateDashboard() {
+      const data = getFilteredData();
+
+      // Badge
+      document.getElementById('activeRecordsBadge').textContent = `Exibindo ${data.length} de 100 vendas`;
+
+      // KPIs
+      const totalRev = data.reduce((acc, cur) => acc + cur.p, 0);
+      const count = data.length;
+      const avgPrice = count > 0 ? totalRev / count : 0;
+      const deliveredCount = data.filter(d => d.st === 'Delivered').length;
+      const prices = data.map(d => d.p);
+      const minP = count > 0 ? Math.min(...prices) : 0;
+      const maxP = count > 0 ? Math.max(...prices) : 0;
+
+      // Top Model
+      const modelRevMap = {};
+      data.forEach(d => { modelRevMap[d.m] = (modelRevMap[d.m] || 0) + d.p; });
+      const sortedModels = Object.entries(modelRevMap).sort((a, b) => b[1] - a[1]);
+      const topModelName = sortedModels.length > 0 ? sortedModels[0][0] : 'Nenhum';
+      const topModelRev = sortedModels.length > 0 ? sortedModels[0][1] : 0;
+
+      document.getElementById('kpiRevenue').textContent = formatUSD(totalRev);
+      document.getElementById('kpiCount').textContent = count;
+      document.getElementById('kpiDeliveredSub').textContent = `${deliveredCount} entregues (${count > 0 ? Math.round((deliveredCount/count)*100) : 0}%)`;
+      document.getElementById('kpiAvgPrice').textContent = formatUSD(avgPrice);
+      document.getElementById('kpiMinMaxSub').textContent = `Min: ${formatUSD(minP)} | Max: ${formatUSD(maxP)}`;
+      document.getElementById('kpiTopModel').textContent = topModelName;
+      document.getElementById('kpiTopModelSub').textContent = topModelRev > 0 ? `Receita: ${formatUSD(topModelRev)}` : 'Sem dados no filtro';
+
+      renderCharts(data, sortedModels);
+      renderTable(data);
+    }
+
+    function renderCharts(data, sortedModels) {
+      Chart.defaults.color = '#9ca3af';
+      Chart.defaults.font.family = 'Inter';
+
+      // 1. Chart Models (Top 10)
+      const top10Models = sortedModels.slice(0, 10);
+      const ctxModels = document.getElementById('chartModels').getContext('2d');
+      if (chartModelsInstance) chartModelsInstance.destroy();
+      chartModelsInstance = new Chart(ctxModels, {
+        type: 'bar',
+        data: {
+          labels: top10Models.map(i => i[0]),
+          datasets: [{
+            label: 'Receita (US$)',
+            data: top10Models.map(i => i[1]),
+            backgroundColor: '#d5001c',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: '#262930' }, ticks: { callback: v => '$' + (v/1000) + 'k' } },
+            y: { grid: { display: false } }
+          }
+        }
+      });
+
+      // 2. Chart States (Top 10)
+      const stateMap = {};
+      data.forEach(d => { stateMap[d.s] = (stateMap[d.s] || 0) + d.p; });
+      const top10States = Object.entries(stateMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      const ctxStates = document.getElementById('chartStates').getContext('2d');
+      if (chartStatesInstance) chartStatesInstance.destroy();
+      chartStatesInstance = new Chart(ctxStates, {
+        type: 'bar',
+        data: {
+          labels: top10States.map(i => i[0]),
+          datasets: [{
+            label: 'Receita por UF (US$)',
+            data: top10States.map(i => i[1]),
+            backgroundColor: '#e5e7eb',
+            hoverBackgroundColor: '#d5001c',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { grid: { color: '#262930' }, ticks: { callback: v => '$' + (v/1000) + 'k' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      // 3. Chart Payment Methods
+      const payMap = {};
+      data.forEach(d => { payMap[d.pm] = (payMap[d.pm] || 0) + d.p; });
+      const sortedPay = Object.entries(payMap).sort((a, b) => b[1] - a[1]);
+      const ctxPay = document.getElementById('chartPayment').getContext('2d');
+      if (chartPaymentInstance) chartPaymentInstance.destroy();
+      chartPaymentInstance = new Chart(ctxPay, {
+        type: 'doughnut',
+        data: {
+          labels: sortedPay.map(i => i[0]),
+          datasets: [{
+            data: sortedPay.map(i => i[1]),
+            backgroundColor: ['#d5001c', '#ef4444', '#f87171', '#9ca3af', '#6b7280', '#4b5563', '#374151', '#d97706', '#10b981'],
+            borderColor: '#16181d',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } }
+          }
+        }
+      });
+
+      // 4. Chart Model Years
+      const yearMap = {};
+      data.forEach(d => { yearMap[d.y] = (yearMap[d.y] || 0) + d.p; });
+      const sortedYears = Object.entries(yearMap).sort((a, b) => Number(a[0]) - Number(b[0]));
+      const ctxYears = document.getElementById('chartYears').getContext('2d');
+      if (chartYearsInstance) chartYearsInstance.destroy();
+      chartYearsInstance = new Chart(ctxYears, {
+        type: 'line',
+        data: {
+          labels: sortedYears.map(i => i[0]),
+          datasets: [{
+            label: 'Receita Total (US$)',
+            data: sortedYears.map(i => i[1]),
+            borderColor: '#d5001c',
+            backgroundColor: 'rgba(213, 0, 28, 0.15)',
+            fill: true,
+            tension: 0.3,
+            pointBackgroundColor: '#ffffff',
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { grid: { color: '#262930' }, ticks: { callback: v => '$' + (v/1000) + 'k' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[#1f2229] transition';
+        const dateBadge = item.d === 'INVALID'
+          ? `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px]">INVALID</span>`
+          : `<span class="text-gray-300 font-mono">${item.d}</span>`;
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-3">${dateBadge}</td>
+          <td class="py-2.5 px-3 font-semibold text-white">${item.m}</td>
+          <td class="py-2.5 px-3 text-gray-300">${item.y}</td>
+          <td class="py-2.5 px-3 font-semibold text-emerald-400">${formatUSD(item.p)}</td>
+          <td class="py-2.5 px-3 text-gray-400">${item.km.toLocaleString('en-US')} mi</td>
+          <td class="py-2.5 px-3 text-gray-300">${item.pm}</td>
+          <td class="py-2.5 px-3 text-gray-300">${item.c} - <span class="font-bold text-white">${item.s}</span></td>
+          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-gray-800 text-gray-300 text-[10px]">${item.st}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Inicialização
+    populateFilters();
+    updateDashboard();
+
+    ['filterModel', 'filterState', 'filterYear', 'filterPayment', 'filterStatus', 'filterInvalidDate'].forEach(id => {
+      document.getElementById(id).addEventListener('change', updateDashboard);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      ['filterModel', 'filterState', 'filterYear', 'filterPayment', 'filterStatus', 'filterInvalidDate'].forEach(id => {
+        document.getElementById(id).value = 'ALL';
+      });
+      updateDashboard();
+    });
+  </script>
+</body>
+</html>
